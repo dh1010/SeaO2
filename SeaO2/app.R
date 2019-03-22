@@ -27,9 +27,10 @@ ui <- fluidPage(
                                          "15_Alkalinity and DIC",
                                          "21_pCO2 and pH",
                                          "24_pCO2 and Alkalinity",
-                                         "25_pCO2 and DIC")),
-                 textInput('Var1', 'Variable 1: (comma delimited)', "8"),
-                 textInput('Var2', 'Variable 2: (comma delimited)', "0.002"),
+                                         "25_pCO2 and DIC"),,
+                             width = "6cm"),
+                 numericInput('Var1', 'Variable 1: (comma delimited)', "8",  width = "6cm"),
+                 numericInput('Var2', 'Variable 2: (comma delimited)', "0.002",  width = "6cm"),
                  sliderInput("Salinity",
                              "Salinity:",
                              value = 35,
@@ -40,24 +41,15 @@ ui <- fluidPage(
                              value = 20,
                              min = 9,
                              max = 33),
+                 numericInput("TP", 
+                             "Total P (uM):", 
+                             value = 3),
+                 numericInput("Sit", 
+                             "Total Si (uM):", 
+                             value = 55),
                  actionButton("Run_model", "Run SeaO2"),
-                 # selectInput("plotvarx",
-                 #             "x plot:",
-                 #             choices = c("pH",
-                 #                         "DIC",
-                 #                         "ALK",
-                 #                         "pCO2",
-                 #                         "CO3",
-                 #                         "HCO3")),
-                 # selectInput("plotvary",
-                 #             "y plot:",
-                 #             choices = c("pH",
-                 #                         "DIC",
-                 #                         "ALK",
-                 #                         "pCO2",
-                 #                         "CO3",
-                 #                         "HCO3")),
-                 h5("Default values"),
+    
+                  h5("Default values"),
                  # h5("pH = 7.9"),
                  # h5("Alkalinity = 0.0023 mol/kgw"),
                  # h5("DIC = 0.0021 mol/kgw"),
@@ -67,22 +59,20 @@ ui <- fluidPage(
                  h6("klk from Lueker et al. (2000)"),
                  h6("kf from Perez and Fraga (1987)"),
                  h6("ks Dickson (1990)"),
+                 h6("pH scale = SWS"),
                  h6("Created using the seacarb package version 3.2.6 ")
     ),
     
     # Show a plot of the generated distribution
     mainPanel(
-      textOutput("selected_parms"),
-      textOutput("Var1"),
-      textOutput("Var2"),
-      tableOutput("carbprev"),
-      tableOutput("table"),
-      plotOutput("plot1"),
-      plotOutput("plot2")
-    )
-  )
-)
-
+      tabsetPanel(
+         tabPanel("Table",
+           # tableOutput("carbprev"),
+          tableOutput("table"))
+         # tabPanel("Plot",
+         #  plotOutput("plot1"))
+    ))))
+    
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   fulltab <- data.frame()
@@ -90,31 +80,35 @@ server <- function(input, output, session) {
   observe({
     p = as.numeric(str_split_fixed(input$parms, "_", 4)[,1])
     if(p == 8){
-      updateTextInput(session,'Var1', value = "7.9", label = "pH")
-      updateTextInput(session, 'Var2', value = "0.0023", label = "Alkalinity (eq/L)")}
+      updateNumericInput(session,'Var1', value = "7.9", label = "pH", step = 0.1)
+      updateNumericInput(session, 'Var2', value = "0.0023", label = "Alkalinity (eq/L)", step = 0.0001)}
     if(p == 9){
-      updateTextInput(session,'Var1', value = "7.9", label = "pH")
-      updateTextInput(session, 'Var2', value = "0.0021", label = "DIC (M)")}
+      updateNumericInput(session,'Var1', value = "7.9", label = "pH", step = 0.1)
+      updateNumericInput(session, 'Var2', value = "0.0021", label = "DIC (M)", step = 0.0001)}
     if(p == 15){
-      updateTextInput(session,'Var1', value = "0.0023", label = "Alkalinity (eq/L)")
-      updateTextInput(session, 'Var2', value = "0.0021", label = "DIC (M)")}
+      updateNumericInput(session,'Var1', value = "0.0023", label = "Alkalinity (eq/L)", step = 0.0001)
+      updateNumericInput(session, 'Var2', value = "0.0021", label = "DIC (M)", step = 0.0001)}
     if(p == 21){
-      updateTextInput(session,'Var1', value = "600", label = "pCO2 (uatm)")
-      updateTextInput(session, 'Var2', value = "7.9", label = "pH")}
+      updateNumericInput(session,'Var1', value = "600", label = "pCO2 (uatm)", step = 1)
+      updateNumericInput(session, 'Var2', value = "7.9", label = "pH", step = 0.0001)}
     if(p == 24){
-      updateTextInput(session,'Var1', value = "600", label = "pCO2 (uatm)")
-      updateTextInput(session, 'Var2', value = "0.0023", label = "Alkalinity (eq/L)")}
+      updateNumericInput(session,'Var1', value = "600", label = "pCO2 (uatm)", step = 1)
+      updateNumericInput(session, 'Var2', value = "0.0023", label = "Alkalinity (eq/L), step = 0.0001")}
     if(p == 25){
-      updateTextInput(session,'Var1', value = "600", label = "pCO2 (uatm)")
-      updateTextInput(session, 'Var2', value = "0.0021", label = "DIC (M)")}
+      updateNumericInput(session,'Var1', value = "600", label = "pCO2 (uatm)", step = 1)
+      updateNumericInput(session, 'Var2', value = "0.0021", label = "DIC (M)", step = 0.0001)}
   })
   
   carbdat <- eventReactive(input$Run_model,{
     carb(flag = as.numeric(str_split_fixed(input$parms, "_", 4)[,1]),
-         var1 = as.numeric(unlist(strsplit(input$Var1,","))),
-         var2 = as.numeric(unlist(strsplit(input$Var2,","))), 
+         var1 = input$Var1,
+         var2 = input$Var2, 
          S = input$Salinity, 
-         T = input$Temperature)%>%
+         T = input$Temperature,
+         Pt = as.numeric(input$TP)/1000000,
+         Sit = as.numeric(input$Sit)/1000000,
+         pHscale = "SWS"
+         )%>%
       mutate(ID = row_number(),
              DIC = DIC * 1000,
              CO2 = CO2 * 1000,
@@ -130,10 +124,11 @@ server <- function(input, output, session) {
   
   output$carbprev <- renderTable(carbspec())
   output$table <-renderTable(fulltab <<- rbind(fulltab, carbdat())%>%mutate(ID = row_number()))
-  # output$plot1<-renderPlot({ggplot(fulltab)+
-  #     geom_line(aes(x = ALK, y = HCO3))+
-  #     theme_bw()
-  # })
+  
+  output$plot1<-renderPlot({ggplot(fulltab)+
+      geom_line(aes(x = ALK, y = OmegaCalcite))+
+      theme_bw()
+  })
 }
 
 # Run the application 
