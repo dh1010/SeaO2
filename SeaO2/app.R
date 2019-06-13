@@ -18,8 +18,8 @@ ui <- fluidPage(
   titlePanel("SeaO2"),
   
   # Sidebar with a slider input for number of bins 
-  sidebarLayout(
-    sidebarPanel(width = 3,
+  fluidRow(
+    column(width = 3,
                  selectInput("parms",
                              "Choose two carbonate system parameters:",
                              choices = c("8_pH and Alkalinity",
@@ -30,41 +30,44 @@ ui <- fluidPage(
                                          "25_pCO2 and DIC"),,
                              width = "6cm"),
                  numericInput('Var1', 'Variable 1: (comma delimited)', "8",  width = "6cm"),
-                 numericInput('Var2', 'Variable 2: (comma delimited)', "0.002",  width = "6cm"),
-                 sliderInput("Salinity",
-                             "Salinity:",
-                             value = 35,
-                             min = 19,
-                             max = 40),
-                 sliderInput("Temperature",
-                             "Temperature (C):",
-                             value = 20,
-                             min = 9,
-                             max = 33),
-                 numericInput("TP", 
-                             "Total P (uM):", 
-                             value = 3),
-                 numericInput("Sit", 
-                             "Total Si (uM):", 
-                             value = 55),
-                 actionButton("Run_model", "Run SeaO2"),
-    
-                  h5("Default values"),
-                 # h5("pH = 7.9"),
-                 # h5("Alkalinity = 0.0023 mol/kgw"),
-                 # h5("DIC = 0.0021 mol/kgw"),
-                 # h5("pCO2 = 600 uatm"),
-                 # h5("Salinity = 35"),
-                 # h5("Temperature 20 C"),
-                 h6("klk from Lueker et al. (2000)"),
-                 h6("kf from Perez and Fraga (1987)"),
-                 h6("ks Dickson (1990)"),
-                 h6("pH scale = SWS"),
-                 h6("Created using the seacarb package version 3.2.6 ")
+                 numericInput('Var2', 'Variable 2: (comma delimited)', "0.002",  width = "6cm")
     ),
+    column(width = 3,
+           sliderInput("Salinity",
+                       "Salinity:",
+                       value = 35,
+                       min = 19,
+                       max = 40),
+           sliderInput("Temperature",
+                       "Temperature (C):",
+                       value = 20,
+                       min = 9,
+                       max = 33),
+           numericInput("TP", 
+                        "Total P (uM):", 
+                        value = 3),
+           numericInput("Sit", 
+                        "Total Si (uM):", 
+                        value = 55)       
+    ),
+    column(width = 3,
+           h5("Default values"),
+           # h5("pH = 7.9"),
+           # h5("Alkalinity = 0.0023 mol/kgw"),
+           # h5("DIC = 0.0021 mol/kgw"),
+           # h5("pCO2 = 600 uatm"),
+           # h5("Salinity = 35"),
+           # h5("Temperature 20 C"),
+           h6("klk from Lueker et al. (2000)"),
+           h6("kf from Perez and Fraga (1987)"),
+           h6("ks Dickson (1990)"),
+           h6("pH scale = SWS"),
+           h6("Created using the seacarb package version 3.2.6 "),
+           actionButton("Run_model", "Run SeaO2")
+           ),
     
     # Show a plot of the generated distribution
-    mainPanel(
+    column(width = 12,
       tabsetPanel(
          tabPanel("Table",
            # tableOutput("carbprev"),
@@ -110,15 +113,15 @@ server <- function(input, output, session) {
          pHscale = "SWS"
          )%>%
       mutate(ID = row_number(),
-             DIC = DIC * 1000,
-             CO2 = CO2 * 1000,
+             DIC_mM = DIC * 1000,
+             CO2_mM = CO2 * 1000,
              CO2pct = (CO2/DIC)*100,
-             HCO3 = HCO3 * 1000,
+             HCO3_mM = HCO3 * 1000,
              HCO3pct = (HCO3/DIC)*100,
-             CO3 = CO3 * 1000,
+             CO3_mM = CO3 * 1000,
              CO3pct = (CO3/DIC)*100,
-             ALK = ALK * 1000)%>%
-      select(ID, pH, ALK, DIC, CO3, CO3pct, HCO3, HCO3pct, CO2, CO2pct, OmegaCalcite, OmegaAragonite, pCO2, fCO2, pCO2insitu, fCO2insitu, pCO2pot, fCO2pot, T, S, P, Patm, flag)})
+             ALK_mM = ALK * 1000)%>%
+      select(ID, pH, ALK_mM, DIC_mM, CO3_mM, CO3pct, HCO3_mM, HCO3pct, CO2_mM, CO2pct, OmegaCalcite, OmegaAragonite, pCO2, fCO2, pCO2insitu, fCO2insitu, pCO2pot, fCO2pot, T, S, P, Patm, flag)})
   
   carbspec <- reactive({select(carbdat(), ALK, CO2, HCO3, CO3)}%>%gather(Species, Conc_mM, CO2:CO3))
   
