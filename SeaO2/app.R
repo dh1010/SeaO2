@@ -10,16 +10,18 @@ library(tidyverse)
 library(seacarb)
 library(shiny)
 library(DT)
+library(shinythemes)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
+  theme = shinytheme("cerulean"),
   
   # Application title
   titlePanel("SeaO2"),
   
   # Sidebar with a slider input for number of bins 
   fluidRow(
-    column(width = 3,
+    column(width = 4,
                  selectInput("parms",
                              "Choose two carbonate system parameters:",
                              choices = c("8_pH and Alkalinity",
@@ -32,7 +34,7 @@ ui <- fluidPage(
                  numericInput('Var1', 'Variable 1: (comma delimited)', "8",  width = "6cm"),
                  numericInput('Var2', 'Variable 2: (comma delimited)', "0.002",  width = "6cm")
     ),
-    column(width = 3,
+    column(width = 4,
            sliderInput("Salinity",
                        "Salinity:",
                        value = 35,
@@ -50,7 +52,7 @@ ui <- fluidPage(
                         "Total Si (uM):", 
                         value = 55)       
     ),
-    column(width = 3,
+    column(width = 4,
            h5("Default values"),
            # h5("pH = 7.9"),
            # h5("Alkalinity = 0.0023 mol/kgw"),
